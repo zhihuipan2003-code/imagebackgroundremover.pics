@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - AI图片背景去除</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #666;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .profile-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+        }
+
+        .profile-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .profile-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        .sidebar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 5px;
+        }
+
+        .menu-item:hover {
+            background: #f5f7fa;
+        }
+
+        .menu-item.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .menu-icon {
+            font-size: 18px;
+        }
+
+        .main-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .history-item {
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .history-thumb {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .history-info {
+            padding: 12px;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-download {
+            background: #52c41a;
+            color: #fff;
+        }
+
+        .btn-download:hover {
+            background: #46a618;
+        }
+
+        .btn-delete {
+            background: #ff4d4f;
+            color: #fff;
+        }
+
+        .btn-delete:hover {
+            background: #e63c3e;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .api-key-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-disconnected {
+            background: #fff2e8;
+            color: #ff7a45;
+            border: 1px solid #ffd8bf;
+        }
+
+        .logout-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #ff4d4f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e63c3e;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .history-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="logo">🎨 AI图片背景去除</a>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/dashboard.html" class="active">个人中心</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="profile-section">
+            <div class="profile-header">
+                <img id="user-avatar" class="avatar" src="" alt="用户头像">
+                <div class="profile-info">
+                    <h2 id="user-name">加载中...</h2>
+                    <p id="user-email">加载中...</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span id="total-processed" class="stat-number">-</span>
+                    <div class="stat-label">已处理图片</div>
+                </div>
+                <div class="stat-card">
+                    <span id="total-storage" class="stat-number">-</span>
+                    <div class="stat-label">存储使用 (MB)</div>
+                </div>
+                <div class="stat-card">
+                    <span id="today-processed" class="stat-number">-</span>
+                    <div class="stat-label">今日处理</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <aside class="sidebar">
+                <div class="menu-item active" data-section="overview">
+                    <span class="menu-icon">📊</span>
+                    <span>概览</span>
+                </div>
+                <div class="menu-item" data-section="history">
+                    <span class="menu-icon">📸</span>
+                    <span>处理历史</span>
+                </div>
+                <div class="menu-item" data-section="settings">
+                    <span class="menu-icon">⚙️</span>
+                    <span>账户设置</span>
+                </div>
+                <div class="menu-item" data-section="api">
+                    <span class="menu-icon">🔑</span>
+                    <span>API 设置</span>
+                </div>
+                <button id="logout-btn" class="logout-btn">退出登录</button>
+            </aside>
+
+            <main class="main-content">
+                <!-- 概览页面 -->
+                <section id="overview" class="section active">
+                    <h3>📊 使用概览</h3>
+                    <div id="overview-content">
+                        <div id="recent-history">
+                            <h4 style="margin: 20px 0 15px;">最近处理</h4>
+                            <div id="recent-history-list" class="history-list">
+                                <!-- 动态加载 -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 处理历史页面 -->
+                <section id="history" class="section">
+                    <h3>📸 处理历史</h3>
+                    <div id="history-content">
+                        <div id="history-list" class="history-list">
+                            <!-- 动态加载 -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 账户设置页面 -->
+                <section id="settings" class="section">
+                    <h3>⚙️ 账户设置</h3>
+                    <div class="form-group">
+                        <label>显示名称</label>
+                        <input type="text" id="display-name" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>语言设置</label>
+                        <select id="language-setting">
+                            <option value="zh-CN">简体中文</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>主题</label>
+                        <select id="theme-setting">
+                            <option value="light">浅色模式</option>
+                            <option value="dark">深色模式</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                </section>
+
+                <!-- API 设置页面 -->
+                <section id="api" class="section">
+                    <h3>🔑 API 设置</h3>
+                    <div class="form-group">
+                        <label>
+                            Remove.bg API Key 
+                            <span id="api-key-status" class="api-key-status status-disconnected">未设置</span>
+                        </label>
+                        <input type="password" id="api-key-input" placeholder="输入你的 remove.bg API Key">
+                        <p style="font-size: 12px; color: #999; margin-top: 5px;">
+                            设置自己的 API Key 可以获得更多免费额度。留空将使用系统默认 Key。
+                            <a href="https://www.remove.bg/api" target="_blank">获取 API Key</a>
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label>默认输出格式</label>
+                        <select id="output-format">
+                            <option value="auto">自动</option>
+                            <option value="png">PNG</option>
+                            <option value="jpg">JPG</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>默认尺寸</label>
+                        <select id="output-size">
+                            <option value="auto">自动</option>
+                            <option value="preview">预览 (0.25 MP)</option>
+                            <option value="full">完整</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveApiSettings()">保存 API 设置</button>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        class UserDashboard {
+            constructor() {
+                this.token = localStorage.getItem('authToken');
+                this.user = null;
+                this.currentSection = 'overview';
+                this.init();
+            }
+
+            async init() {
+                if (!this.token) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                try {
+                    await this.loadUser();
+                    await this.loadStats();
+                    this.bindEvents();
+                    this.loadSection('overview');
+                } catch (err) {
+                    console.error('初始化失败:', err);
+                    this.logout();
+                }
+            }
+
+            async loadUser() {
+                const response = await fetch('/api/user', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (!response.ok) throw new Error('加载用户失败');
+                
+                this.user = await response.json();
+                document.getElementById('user-avatar').src = this.user.picture;
+                document.getElementById('user-name').textContent = this.user.name;
+                document.getElementById('user-email').textContent = this.user.email;
+            }
+
+            async loadStats() {
+                const response = await fetch('/api/stats', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (!response.ok) return;
+                
+                const stats = await response.json();
+                document.getElementById('total-processed').textContent = stats.total_processed || 0;
+                document.getElementById('total-storage').textContent = (stats.total_storage_mb || 0).toFixed(1);
+                document.getElementById('today-processed').textContent = stats.today_processed || 0;
+            }
+
+            bindEvents() {
+                // 菜单切换
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const section = e.currentTarget.dataset.section;
+                        this.switchSection(section);
+                    });
+                });
+
+                // 退出登录
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    this.logout();
+                });
+            }
+
+            switchSection(sectionName) {
+                // 更新菜单状态
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+                // 切换内容
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionName).classList.add('active');
+
+                this.currentSection = sectionName;
+                this.loadSection(sectionName);
+            }
+
+            async loadSection(sectionName) {
+                switch (sectionName) {
+                    case 'overview':
+                    case 'history':
+                        await this.loadHistory(sectionName === 'overview' ? 6 : 0);
+                        break;
+                    case 'settings':
+                        await this.loadSettings();
+                        break;
+                    case 'api':
+                        await this.loadApiSettings();
+                        break;
+                }
+            }
+
+            async loadHistory(limit = 0) {
+                const url = limit > 0 ? `/api/history?limit=${limit}` : '/api/history';
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (!response.ok) return;
+
+                const history = await response.json();
+                const container = document.getElementById(
+                    limit > 0 ? 'recent-history-list' : 'history-list'
+                );
+
+                if (history.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📸</div>
+                            <p>还没有处理记录</p>
+                            <a href="/" class="btn btn-primary" style="margin-top: 15px;">开始处理</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = history.map(item => `
+                    <div class="history-item">
+                        <img src="${item.result_url}" alt="处理结果" class="history-thumb">
+                        <div class="history-info">
+                            <div class="history-date">${new Date(item.created_at).toLocaleDateString('zh-CN')}</div>
+                            <div style="font-size: 12px; color: #999;">${(item.file_size / 1024).toFixed(1)} KB</div>
+                            <div class="history-actions">
+                                <button class="btn-small btn-download" onclick="downloadImage('${item.result_url}', '${item.id}')">下载</button>
+                                <button class="btn-small btn-delete" onclick="deleteHistory('${item.id}')">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async loadSettings() {
+                // 加载用户设置
+                const response = await fetch('/api/settings', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (response.ok) {
+                    const settings = await response.json();
+                    document.getElementById('display-name').value = settings.display_name || this.user.name;
+                    document.getElementById('language-setting').value = settings.language || 'zh-CN';
+                    document.getElementById('theme-setting').value = settings.theme || 'light';
+                }
+            }
+
+            async loadApiSettings() {
+                const response = await fetch('/api/settings/api', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (response.ok) {
+                    const settings = await response.json();
+                    const hasApiKey = !!settings.api_key;
+                    
+                    document.getElementById('api-key-status').textContent = hasApiKey ? '已设置' : '未设置';
+                    document.getElementById('api-key-status').className = 
+                        `api-key-status ${hasApiKey ? 'status-connected' : 'status-disconnected'}`;
+                    
+                    document.getElementById('output-format').value = settings.default_output_format || 'auto';
+                    document.getElementById('output-size').value = settings.default_size || 'auto';
+                }
+            }
+
+            logout() {
+                localStorage.removeItem('authToken');
+                window.location.href = '/';
+            }
+        }
+
+        // 全局函数
+        async function saveSettings() {
+            const token = localStorage.getItem('authToken');
+            const data = {
+                display_name: document.getElementById('display-name').value,
+                language: document.getElementById('language-setting').value,
+                theme: document.getElementById('theme-setting').value
+            };
+
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('设置已保存！');
+                location.reload();
+            } else {
+                alert('保存失败，请重试');
+            }
+        }
+
+        async function saveApiSettings() {
+            const token = localStorage.getItem('authToken');
+            const data = {
+                api_key: document.getElementById('api-key-input').value,
+                default_output_format: document.getElementById('output-format').value,
+                default_size: document.getElementById('output-size').value
+            };
+
+            const response = await fetch('/api/settings/api', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('API 设置已保存！');
+                document.getElementById('dashboard').loadApiSettings();
+            } else {
+                alert('保存失败，请重试');
+            }
+        }
+
+        function downloadImage(url, id) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `background-removed-${id}.png`;
+            link.click();
+        }
+
+        async function deleteHistory(id) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/history/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                document.getElementById('dashboard').loadSection('history');
+            } else {
+                alert('删除失败');
+            }
+        }
+
+        // 初始化
+        const dashboard = new UserDashboard();
+        document.getElementById('dashboard') = dashboard;
+    </script>
+</body>
+</html>

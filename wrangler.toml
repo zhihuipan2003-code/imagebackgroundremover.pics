@@ -36,3 +36,9 @@ database_id = "YOUR_DATABASE_ID"  # Replace with your actual D1 database ID
 # GOOGLE_CLIENT_SECRET = "set via dashboard"
 # JWT_SECRET = "set via dashboard"
 # REMOVE_BG_API_KEY = "set via dashboard"
+
+# Cloudflare Pages configuration
+[[pages]]
+name = "imagebackgroundremover"
+bucket = "."
+entry-point = "functions"

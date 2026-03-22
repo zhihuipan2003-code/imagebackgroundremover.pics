@@ -1,0 +1,4 @@
+name = "imagebackgroundremover"
+production-branch = "master"
+build-command = ""
+output-directory = "."

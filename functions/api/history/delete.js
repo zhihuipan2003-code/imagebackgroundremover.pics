@@ -1,4 +1,4 @@
-export async function onRequestPost(context) {
+export async function onRequestDelete(context) {
   const { request, env } = context;
   const authHeader = request.headers.get('Authorization');
   
@@ -12,35 +12,46 @@ export async function onRequestPost(context) {
   try {
     const token = authHeader.substring(7);
     const user = await verifyJWT(token, env.JWT_SECRET);
-    const body = await request.json();
-    const { historyId } = body;
-
-    if (!historyId) {
-      return new Response(JSON.stringify({ error: 'Missing historyId' }), { 
+    
+    // Get history ID from URL
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const historyId = pathParts[pathParts.length - 1];
+    
+    if (!historyId || isNaN(historyId)) {
+      return new Response(JSON.stringify({ error: 'Invalid history ID' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-
-    // Verify the history record belongs to the user before deleting
-    const deleteStmt = env.DB.prepare(
-      `DELETE FROM processing_history WHERE id = ? AND user_id = ?`
+    
+    // Delete the history record
+    // First verify it belongs to the user
+    const checkStmt = env.DB.prepare(
+      `SELECT id FROM processing_history WHERE id = ? AND user_id = ?`
     ).bind(historyId, user.sub);
     
-    const result = await deleteStmt.run();
+    const record = await checkStmt.first();
     
-    if (result.changes === 0) {
-      return new Response(JSON.stringify({ error: 'Not found or unauthorized' }), { 
+    if (!record) {
+      return new Response(JSON.stringify({ error: 'Record not found' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-
+    
+    // Delete the record
+    const deleteStmt = env.DB.prepare(
+      `DELETE FROM processing_history WHERE id = ?`
+    ).bind(historyId);
+    
+    await deleteStmt.run();
+    
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('Error deleting history:', err);
+    console.error('Failed to delete history:', err);
     return new Response(JSON.stringify({ error: 'Server error' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
