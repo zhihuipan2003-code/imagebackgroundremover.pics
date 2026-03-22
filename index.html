@@ -430,16 +430,12 @@
             processingSection.style.display = 'block';
 
             try {
-                // Process with Remove.bg API
+                // Process with Remove.bg API via our backend
                 const formData = new FormData();
                 formData.append('image_file', file);
-                formData.append('size', 'auto');
 
-                const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+                const response = await fetch('/api/remove-bg', {
                     method: 'POST',
-                    headers: {
-                        'X-Api-Key': 'YOUR_REMOVE_BG_API_KEY', // Replace with your API key
-                    },
                     body: formData,
                 });
 

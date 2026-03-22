@@ -54,18 +54,15 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Get the result image
+    // Get the result image and return it directly as a blob
     const resultBlob = await response.blob();
-    const arrayBuffer = await resultBlob.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
     
-    // Return the result
-    return new Response(JSON.stringify({
-      success: true,
-      result_url: `data:image/png;base64,${base64Image}`,
-      message: 'Background removed successfully'
-    }), {
-      headers: { 'Content-Type': 'application/json' }
+    // Return the image blob with appropriate content type
+    return new Response(resultBlob, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=3600'
+      }
     });
     
   } catch (err) {
