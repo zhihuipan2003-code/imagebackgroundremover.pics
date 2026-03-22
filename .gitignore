@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.dev.vars
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Cloudflare
+.wrangler/
+build/
+dist/
+
+# Temporary files
+*.tmp
+.cache/
+
+# API Keys and Secrets (if any other secret files)
+secrets.json
+config/secrets.json
+
+# Keep these patterns at the end
+!functions/**/*.js
+!*.sql
+!wrangler.toml

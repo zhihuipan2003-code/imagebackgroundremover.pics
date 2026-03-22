@@ -1,0 +1,38 @@
+# Cloudflare Pages Functions Configuration
+# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "imagebackgroundremover"
+compatibility_date = "2024-01-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+# Development settings
+[env.local]
+# These will be overridden by .dev.vars in local dev
+vars = { ENVIRONMENT = "development" }
+
+# Production settings
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# D1 Database binding (production)
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "imagebg-remover-db"
+database_id = "YOUR_DATABASE_ID"  # Replace with your actual D1 database ID
+
+# KV Namespace (optional, for rate limiting or caching)
+# [[env.production.kv_namespaces]]
+# binding = "KV"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# R2 Bucket (optional, for permanent image storage)
+# [[env.production.r2_buckets]]
+# binding = "IMAGES"
+# bucket_name = "imagebackgroundremover-images"
+
+# Environment variables (secrets should be set via Cloudflare Dashboard)
+# [env.production.vars]
+# GOOGLE_CLIENT_ID = "set via dashboard"
+# GOOGLE_CLIENT_SECRET = "set via dashboard"
+# JWT_SECRET = "set via dashboard"
+# REMOVE_BG_API_KEY = "set via dashboard"

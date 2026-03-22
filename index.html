@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Background Remover</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        #auth-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        #user-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        #user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        #user-name {
+            font-weight: 500;
+            color: white;
+        }
+
+        #logout-btn {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #logout-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .drop-zone.dragover {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .processing-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            text-align: center;
+        }
+
+        .result-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .result-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #d93025;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            #auth-container {
+                position: static;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Image Background Remover</h1>
+            <p class="subtitle">Remove backgrounds from images instantly with AI</p>
+            
+            <!-- Google OAuth Container -->
+            <div id="auth-container">
+                <div id="login-section">
+                    <button onclick="signInWithGoogle()" 
+                            style="display: flex; align-items: center; gap: 10px; 
+                                   padding: 10px 15px; background: white; border: 1px solid #ddd; 
+                                   border-radius: 4px; cursor: pointer; font-size: 14px; 
+                                   font-family: inherit; color: #333;">
+                        <img src="https://www.google.com/favicon.ico" style="width: 18px; height: 18px;">
+                        Sign in with Google
+                    </button>
+                </div>
+                
+                <div id="user-section" style="display: none;">
+                    <img id="user-avatar" style="width: 32px; height: 32px; border-radius: 50%;">
+                    <span id="user-name"></span>
+                    <button id="logout-btn" style="padding: 5px 12px; background: #f44336; 
+                            color: white; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
+                </div>
+            </div>
+            
+            <script>
+            function signInWithGoogle() {
+                window.location.href = '/api/auth/google';
+            }
+            </script>
+        </header>
+
+        <div class="error-message" id="error-message"></div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="drop-zone" id="drop-zone">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Drop your image here</div>
+                <div class="upload-subtext">or click to browse • Supports JPG, PNG, WebP</div>
+            </div>
+            <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+        </div>
+
+        <!-- Processing Section -->
+        <div class="processing-section" id="processing-section">
+            <div class="loading-spinner"></div>
+            <div class="upload-text">Processing your image with AI...</div>
+            <div class="upload-subtext">This usually takes 3-5 seconds</div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results-section">
+            <h2 style="text-align: center; margin-bottom: 10px; color: #333;">Results</h2>
+            <div class="results-grid">
+                <div class="result-card">
+                    <h3>📸 Original</h3>
+                    <img id="original-image" class="result-image" alt="Original image">
+                </div>
+                <div class="result-card">
+                    <h3>✨ Background Removed</h3>
+                    <img id="processed-image" class="result-image" alt="Background removed">
+                    <a id="download-btn" class="btn" download>Download Result</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Lightning Fast</div>
+                <div class="feature-desc">AI-powered background removal in seconds, not minutes</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">Smart AI</div>
+                <div class="feature-desc">Advanced machine learning for precise edge detection</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Secure & Private</div>
+                <div class="feature-desc">Your images are processed securely with Remove.bg API</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-title">Global CDN</div>
+                <div class="feature-desc">Fast access worldwide with Cloudflare CDN</div>
+            </div>
+        </div>
+
+        <!-- User Features Section (displayed when logged in) -->
+        <!-- This will be dynamically inserted by oauth-frontend.js -->
+    </div>
+
+    <script>
+        // File upload handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const processingSection = document.getElementById('processing-section');
+        const resultsSection = document.getElementById('results-section');
+        const errorMessage = document.getElementById('error-message');
+
+        // Remove .git from URL if present (GitHub Pages fix)
+        if (window.location.pathname.includes('.git')) {
+            window.history.replaceState({}, document.title, window.location.pathname.replace('.git', ''));
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        async function handleFile(file) {
+            // Validate file
+            if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+                showError('Please select a valid image file (JPG, PNG, or WebP).');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size must be less than 10MB.');
+                return;
+            }
+
+            // Hide previous results
+            resultsSection.style.display = 'none';
+            processingSection.style.display = 'block';
+
+            try {
+                // Process with Remove.bg API
+                const formData = new FormData();
+                formData.append('image_file', file);
+                formData.append('size', 'auto');
+
+                const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+                    method: 'POST',
+                    headers: {
+                        'X-Api-Key': 'YOUR_REMOVE_BG_API_KEY', // Replace with your API key
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const resultBlob = await response.blob();
+                
+                // Create URLs
+                const originalUrl = URL.createObjectURL(file);
+                const resultUrl = URL.createObjectURL(resultBlob);
+
+                // Display results
+                document.getElementById('original-image').src = originalUrl;
+                document.getElementById('processed-image').src = resultUrl;
+                document.getElementById('download-btn').href = resultUrl;
+                
+                processingSection.style.display = 'none';
+                resultsSection.style.display = 'block';
+
+                // Save to history if user is logged in
+                if (window.authManager && authManager.user) {
+                    // Upload to your storage (e.g., Cloudflare R2) and get permanent URLs
+                    // For demo, we'll use the blob URLs which are temporary
+                    await authManager.saveProcessingHistory(originalUrl, resultUrl);
+                    await authManager.loadHistory();
+                }
+
+            } catch (error) {
+                console.error('Processing error:', error);
+                processingSection.style.display = 'none';
+                showError('Failed to process image. Please try again.');
+            }
+        }
+    </script>
+
+    <!-- OAuth Frontend Script -->
+    <script src="/oauth-frontend.js"></script>
+</body>
+</html>
